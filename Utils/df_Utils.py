@@ -18,7 +18,7 @@ def read_df(df_path):
 # duplicades. Per defecte adjunta un plot per visualitzar on estan localitzats
 # els nulls (per canviar-ho entrar do_plot=False) i si la funció s'iguala a una
 # variable, aquesta contindra el df entrat sense valors repetits (si en té).
-def visualitzacio_df(df, do_plot=True):
+def visualitzacio_df(df, do_plot=True, return_df = False):
     display(df.head())
     
     print("\n**Número de NaNs**")
@@ -34,6 +34,7 @@ def visualitzacio_df(df, do_plot=True):
     print('Mida original: ',df.shape,
          '\nNº de dades repetides: ', df.duplicated().sum(),
          '\nMida un cop fet el drop: ',df_copy.shape)
-    return df_copy
+    if return_df:
+        return df_copy
     del df_copy
     
