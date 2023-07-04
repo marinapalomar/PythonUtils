@@ -1,10 +1,10 @@
 *.csv
 *.xlsx
 build
-pythonUtils.egg-info
-pythonUtils.egg-info/dependency_links.txt
-pythonUtils.egg-info/PKG-INFO
-pythonUtils.egg-info/SOURCES.txt
-pythonUtils.egg-info/top_level.txt
+Utils.egg-info
+Utils.egg-info/dependency_links.txt
+Utils.egg-info/PKG-INFO
+Utils.egg-info/SOURCES.txt
+Utils.egg-info/top_level.txt
 .idea/
 *.pyc
