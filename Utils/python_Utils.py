@@ -4,9 +4,12 @@ Created on Tue Jul  4 18:14:48 2023
 
 @author: Marina
 """
+import math
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Funció que, donat una referència de producte, calcula el nombre total de 
 # proveedors que treballen amb ell. A més pot fer un plot per visualitzar les
@@ -107,3 +110,82 @@ def generar_multiprov_id(df):
     d_prova = dic_provxtiempos(df)
     u, m = sep_simultaneos(d_prova)
     return calculo_multi_prov(u, m)
+
+
+# Funció de la MV per comprovar si els productes del df PO's estàn entregats i 
+# la quantitat entregada és positiva (vàlida)
+def pos_entregado(pos):
+    tmp_pos = pos[pos['estado'].str.lower()=='en']
+    tmp_pos = tmp_pos[tmp_pos['catidad_recibida']>0]
+    return tmp_pos
+
+# Funció per generar gràfiques per analitzar l'escalat d'alguns productes. El 
+# valor max_prod marca com de gran és l'hostòric de compres dels productes 
+# seleccionats (no es pot fer gràfica de tots, ja que hi ha moltíssims)
+def plot_escalat(df, max_prod):
+    tmp_pos = pos_entregado(df)
+    
+    a = tmp_pos.groupby(['producto']).count()['fecha_emision'].reset_index()
+    n_val = len(a[a['fecha_emision']>max_prod])
+    stitles = [str(i) for i in range(1, n_val+1)]
+    r = int(np.sqrt(n_val))
+    c = math.ceil(float(n_val)/float(r))
+    
+    fig_dates = make_subplots(rows=r, cols=c, subplot_titles=stitles, y_title = 'precio unidad', x_title = 'fecha', )
+    fig_quant = make_subplots(rows=r, cols=c, subplot_titles=stitles, y_title = 'precio unidad', x_title = 'volumen')
+    fig_qd = make_subplots(rows=r, cols=c, subplot_titles=stitles, y_title = 'volumen', x_title = 'fecha')
+
+
+    names = {}
+    count = 0
+
+    for prod,tmp_po_global in tmp_pos.groupby(['producto']):
+        if len(tmp_po_global)>max_prod and count<=n_val:
+            i = count//c
+            j = count%c
+            count +=1
+            names[stitles[count-1]] = "Producto {0}".format(prod)
+            tmp_po_global = tmp_po_global.sort_values('fecha_emision')
+            tmp_po_global['proveedor'] = tmp_po_global['proveedor'].astype(float)
+
+            fig_dates.append_trace(go.Scatter(x=tmp_po_global['fecha_emision'], y = tmp_po_global['precio_unitario'],
+                                        mode = 'markers',
+                                        marker_color = tmp_po_global['proveedor'],
+                                        text = tmp_po_global['proveedor'],
+                                        name = prod), row=i+1, col=j+1)
+
+            fig_quant.append_trace(go.Scatter(x=tmp_po_global['catidad_recibida'], y = tmp_po_global['precio_unitario'],
+                                        mode = 'markers',
+                                        marker_color = tmp_po_global['proveedor'],
+                                        text = tmp_po_global['proveedor'],
+                                        name = prod), row=i+1, col=j+1)
+
+            fig_qd.append_trace(go.Scatter(x=tmp_po_global['fecha_emision'], y = tmp_po_global['catidad_recibida'],
+                                        mode = 'markers',
+                                        marker_color = tmp_po_global['proveedor'],
+                                        text = tmp_po_global['proveedor'],
+                                        name = prod), row=i+1, col=j+1)
+
+
+
+            fig_dates.update_layout(height=900, width=950, title_text="Precio unitario - fecha")
+            fig_dates.layout.annotations[count-1]['text'] = names[stitles[count-1]]
+
+            fig_quant.update_layout(height=900, width=950, title_text="Precio unitario - cantidad vendida")
+            fig_quant.layout.annotations[count-1]['text'] = names[stitles[count-1]]
+
+            fig_qd.update_layout(height=900, width=950, title_text="Cantidad vendida - fecha")
+            fig_qd.layout.annotations[count-1]['text'] = names[stitles[count-1]]
+
+
+    fig_dates.update_annotations(font_size=13)
+    fig_dates.update_layout(showlegend=False)
+    fig_dates.show()
+
+    fig_quant.update_annotations(font_size=13)
+    fig_quant.update_layout(showlegend=False)
+    fig_quant.show()
+
+    fig_qd.update_annotations(font_size=13)
+    fig_qd.update_layout(showlegend=False)
+    fig_qd.show()
