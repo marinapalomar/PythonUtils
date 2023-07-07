@@ -6,10 +6,14 @@ Created on Tue Jul  4 18:14:48 2023
 """
 import math
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn import linear_model
 import plotly.graph_objects as go
+from sklearn.metrics import r2_score
 from plotly.subplots import make_subplots
+
 
 # Funció que, donat una referència de producte, calcula el nombre total de 
 # proveedors que treballen amb ell. A més pot fer un plot per visualitzar les
@@ -189,3 +193,47 @@ def plot_escalat(df, max_prod):
     fig_qd.update_annotations(font_size=13)
     fig_qd.update_layout(showlegend=False)
     fig_qd.show()
+    
+# Funció per calcular les mètriques i identificar si un producte té escalar 
+def metriques_escalat(x,y):
+    x = np.array(x).round(decimals=0)
+    y = np.array(y).round(decimals=2)
+    n = len(np.unique(y))
+    
+    if ((len(np.unique(y)) <= 2) | (len(np.unique(x)) <= 2)):
+        cc = np.nan
+        r2 = np.nan
+        ccl = np.nan
+        r2l = np.nan
+        escalat = False
+        exp = False
+    else:
+        ylog = np.log(y)
+              
+        regr = linear_model.LinearRegression()
+        regr.fit(x.reshape(-1, 1), ylog.reshape(-1, 1))
+        ylog_pred = regr.predict(x.reshape(-1, 1))
+        
+        cc = np.corrcoef(x,y)[0][1]
+        # Es pot fer ja que es tracta d'una regressió lineal univariable
+        r2 = cc**2
+        ccl = np.corrcoef(x,ylog)[0][1]
+        r2l = r2_score(ylog, ylog_pred)
+    
+        if (((r2 > 0.7) & (cc < -0.7)) | ((r2l > 0.7) & (ccl < -0.7))):
+            escalat = True
+            dif = (r2l-r2)/np.mean([r2l,r2])
+            if(abs(dif)>0.01):
+                if(dif>0):
+                    exp = True
+                else:
+                    exp = False
+            else:
+                exp = 'Both'
+        else:
+            escalat = False
+            exp = False
+            
+
+    return pd.Series({'r2_score':r2, 'coef_corr':cc, 'r2_score (log)':r2l,
+                      'coef_corr (log)':ccl, 'escalat':escalat, 'n': n, 'escalat_exponencial':exp})        
