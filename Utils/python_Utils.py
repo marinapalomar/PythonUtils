@@ -135,9 +135,12 @@ def plot_escalat(df, max_prod):
     r = int(np.sqrt(n_val))
     c = math.ceil(float(n_val)/float(r))
     
-    fig_dates = make_subplots(rows=r, cols=c, subplot_titles=stitles, y_title = 'precio unidad', x_title = 'fecha', )
-    fig_quant = make_subplots(rows=r, cols=c, subplot_titles=stitles, y_title = 'precio unidad', x_title = 'volumen')
-    fig_qd = make_subplots(rows=r, cols=c, subplot_titles=stitles, y_title = 'volumen', x_title = 'fecha')
+    fig_dates = make_subplots(rows=r, cols=c, subplot_titles=stitles, 
+                              y_title = 'precio unidad', x_title = 'fecha')
+    fig_quant = make_subplots(rows=r, cols=c, subplot_titles=stitles,
+                              y_title = 'precio unidad', x_title = 'volumen')
+    fig_qd = make_subplots(rows=r, cols=c, subplot_titles=stitles,
+                           y_title = 'volumen', x_title = 'fecha')
 
 
     names = {}
@@ -152,7 +155,8 @@ def plot_escalat(df, max_prod):
             tmp_po_global = tmp_po_global.sort_values('fecha_emision')
             tmp_po_global['proveedor'] = tmp_po_global['proveedor'].astype(float)
 
-            fig_dates.append_trace(go.Scatter(x=tmp_po_global['fecha_emision'], y = tmp_po_global['precio_unitario'],
+            fig_dates.append_trace(go.Scatter(x=tmp_po_global['fecha_emision'],
+                                        y = tmp_po_global['precio_unitario'],
                                         mode = 'markers',
                                         marker_color = tmp_po_global['proveedor'],
                                         text = tmp_po_global['proveedor'],
